@@ -1,0 +1,42 @@
+# One command to run everything locally:  docker compose up --build
+# Web:      http://localhost:8080      API: http://localhost:4000      Postgres: localhost:5432
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: taskorbit
+      POSTGRES_PASSWORD: taskorbit
+      POSTGRES_DB: taskorbit
+    ports: ["5433:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskorbit"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://taskorbit:taskorbit@db:5432/taskorbit?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-secret-change-me-dev-only-secret-change-me}
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+    depends_on:
+      db: { condition: service_healthy }
+    ports: ["4000:4000"]
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:4000
+    depends_on: [backend]
+    ports: ["8080:80"]
+
+volumes:
+  dbdata:

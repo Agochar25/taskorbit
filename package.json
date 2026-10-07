@@ -1,0 +1,14 @@
+{
+  "name": "taskorbit",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TaskOrbit - project & task management (web + Android) sharing one backend",
+  "workspaces": ["shared", "backend", "web"],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend",
+    "dev:web": "npm run dev -w web",
+    "test": "npm test -w backend",
+    "db:push": "npm run db:push -w backend",
+    "db:seed": "npm run db:seed -w backend"
+  }
+}

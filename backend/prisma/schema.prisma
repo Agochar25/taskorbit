@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+// Declared low -> high so ORDER BY priority sorts naturally.
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id           String         @id @default(uuid())
+  fullName     String
+  email        String         @unique
+  passwordHash String
+  role         Role           @default(USER)
+  createdAt    DateTime       @default(now())
+  projects     Project[]
+  refreshTokens RefreshToken[]
+  auditLogs    AuditLog[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  ownerId     String
+  name        String
+  description String?
+  status      ProjectStatus @default(NOT_STARTED)
+  startDate   DateTime?     @db.Date
+  endDate     DateTime?     @db.Date
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@index([ownerId, status])
+  @@index([ownerId, name])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  projectId   String
+  name        String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(PENDING)
+  dueDate     DateTime?    @db.Date
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@index([dueDate])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}

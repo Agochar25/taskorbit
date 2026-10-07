@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "TaskOrbit",
+    "slug": "taskorbit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "taskorbit",
+    "android": {
+      "package": "com.taskorbit.app",
+      "permissions": ["POST_NOTIFICATIONS"]
+    },
+    "ios": { "bundleIdentifier": "com.taskorbit.app", "supportsTablet": false },
+    "plugins": ["expo-secure-store", "expo-notifications"]
+  }
+}
